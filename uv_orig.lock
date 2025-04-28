@@ -1156,6 +1156,36 @@ wheels = [
 ]
 
 [[package]]
+name = "gym-aloha"
+version = "0.1.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "dm-control" },
+    { name = "gymnasium" },
+    { name = "imageio", extra = ["ffmpeg"] },
+    { name = "mujoco" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/5b/54/0d386001505d0e64cb52c4ec4f4ac29c2259a6dda7032f2854c8b2bac9c9/gym_aloha-0.1.1.tar.gz", hash = "sha256:614ae1cf116323e7b5ae2f0e9bd282c4f052aee15e839e5587ddce45995359bc", size = 443256 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d7/ac/8df1fe5462c068132688897a3f3d62fbede48c674026baecb1012c585cfc/gym_aloha-0.1.1-py3-none-any.whl", hash = "sha256:2698037246dbb106828f0bc229b61007b0a21d5967c72cc373f7bc1083203584", size = 446935 },
+]
+
+[[package]]
+name = "gymnasium"
+version = "0.29.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cloudpickle" },
+    { name = "farama-notifications" },
+    { name = "numpy" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/0d/f8/5699ddb3e1c4f6d97b8930e573074849b921da8374fccd141f0f3a9bd713/gymnasium-0.29.1.tar.gz", hash = "sha256:1a532752efcb7590478b1cc7aa04f608eb7a2fdad5570cd217b66b6a35274bb1", size = 820485 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a8/4d/3cbfd81ed84db450dbe73a89afcd8bc405273918415649ac6683356afe92/gymnasium-0.29.1-py3-none-any.whl", hash = "sha256:61c3384b5575985bb7f85e43213bcb40f36fcdff388cae6bc229304c71f2843e", size = 953939 },
+]
+
+[[package]]
 name = "h5py"
 version = "3.12.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1689,6 +1719,7 @@ dependencies = [
     { name = "einops" },
     { name = "flask" },
     { name = "gdown" },
+    { name = "gymnasium" },
     { name = "h5py" },
     { name = "huggingface-hub", extra = ["cli", "hf-transfer"] },
     { name = "imageio", extra = ["ffmpeg"] },
@@ -2722,6 +2753,7 @@ dependencies = [
     { name = "flatbuffers" },
     { name = "flax" },
     { name = "fsspec", extra = ["gcs"] },
+    { name = "gym-aloha" },
     { name = "imageio" },
     { name = "jax", extra = ["cuda12"] },
     { name = "jaxtyping" },
@@ -2768,6 +2800,7 @@ requires-dist = [
     { name = "flatbuffers", specifier = ">=24.3.25" },
     { name = "flax", specifier = "==0.10.2" },
     { name = "fsspec", extras = ["gcs"], specifier = ">=2024.6.0" },
+    { name = "gym-aloha", specifier = ">=0.1.1" },
     { name = "imageio", specifier = ">=2.36.1" },
     { name = "jax", extras = ["cuda12"], specifier = "==0.5.0" },
     { name = "jaxtyping", specifier = "==0.2.36" },
