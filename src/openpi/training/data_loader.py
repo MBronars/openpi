@@ -177,7 +177,6 @@ def create_data_loader(
 
     dataset = create_dataset(data_config, config.model)
     dataset = transform_dataset(dataset, data_config, skip_norm_stats=skip_norm_stats)
-
     data_loader = TorchDataLoader(
         dataset,
         local_batch_size=config.batch_size // jax.process_count(),

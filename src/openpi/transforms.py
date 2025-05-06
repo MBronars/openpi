@@ -190,7 +190,7 @@ class ResizeSegmentations(DataTransformFn):
     width: int
 
     def __call__(self, data: DataDict) -> DataDict:
-        if "segmentation" not in data:
+        if "segmentation" not in data.keys():
             return data
         # transpose from c, h, w to h, w, c
         data["segmentation"] = {k: image_tools.resize_with_pad(v, self.height, self.width, method=Image.NEAREST).squeeze(0) for k, v in data["segmentation"].items()}

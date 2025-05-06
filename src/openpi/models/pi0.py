@@ -86,27 +86,47 @@ def _flatten_1_2(x: jnp.ndarray) -> jnp.ndarray:
 # ------------------------------------------------------------
 # DICE loss
 # ------------------------------------------------------------
-def dice_loss(
-    inputs: jnp.ndarray,
-    targets: jnp.ndarray,
-    *,
-    scale: float = 1000.0,
-    eps: float = 1e-6,
-) -> jnp.ndarray:
-    """
-    DICE = 1 - ( 2 ⟨p,t⟩ / (‖p‖ + ‖t‖) ); ‖·‖ is sum over flattened dims.
-    `inputs` / `targets` shape: (B, …) – identical.
-    """
-    num_masks = targets.shape[0]
-    inputs = jax.nn.sigmoid(inputs)
-    inputs = _flatten_1_2(inputs)
-    targets = _flatten_1_2(targets)
+# def dice_loss(
+#     inputs: jnp.ndarray,
+#     targets: jnp.ndarray,
+#     *,
+#     scale: float = 1000.0,
+#     eps: float = 1e-6,
+# ) -> jnp.ndarray:
+#     """
+#     DICE = 1 - ( 2 ⟨p,t⟩ / (‖p‖ + ‖t‖) ); ‖·‖ is sum over flattened dims.
+#     `inputs` / `targets` shape: (B, …) – identical.
+#     """
+#     num_masks = targets.shape[0]
+#     inputs = jax.nn.sigmoid(inputs)
+#     inputs = _flatten_1_2(inputs)
+#     targets = _flatten_1_2(targets)
 
-    num   = 2.0 * (inputs / scale * targets).sum(axis=-1)
-    denom = (inputs / scale).sum(axis=-1) + (targets / scale).sum(axis=-1)
+#     num   = 2.0 * (inputs / scale * targets).sum(axis=-1)
+#     denom = (inputs / scale).sum(axis=-1) + (targets / scale).sum(axis=-1)
+#     loss  = 1.0 - (num + eps) / (denom + eps)
+
+#     return loss.sum() / (num_masks + 1e-8)
+
+def dice_loss(inputs: jnp.ndarray,
+              targets: jnp.ndarray,
+              *,
+              eps: float = 1e-6) -> jnp.ndarray:
+    """
+    Soft‑Dice = 1 ‑ (2 ⟨p,t⟩ + eps)/(||p||+||t|| + eps).
+    Inputs are logits; we apply sigmoid inside.
+    Returns a scalar in [0, 1].
+    """
+    # (B, C, H, W)  or  (B, N, H, W)  →  (B*C, H*W)  or  (B*N, H*W)
+    p = jax.nn.sigmoid(inputs)
+    p = _flatten_1_2(p)
+    t = _flatten_1_2(targets)
+
+    num   = 2.0 * (p * t).sum(axis=-1)
+    denom = p.sum(axis=-1) + t.sum(axis=-1)
     loss  = 1.0 - (num + eps) / (denom + eps)
 
-    return loss.sum() / (num_masks + 1e-8)
+    return loss.mean()          # scalar, <= 1.0
 
 
 # ------------------------------------------------------------
@@ -128,13 +148,9 @@ def sigmoid_ce_loss(
         jnp.exp(-jnp.abs(inputs))
     )
 
-    loss = _flatten_1_2(loss).mean(axis=1).sum()
-    # Get spatial dimensions for normalization
-    spatial_dims = targets.shape[1:]
-    area = jnp.prod(jnp.array(spatial_dims))
-    loss = loss / area
+    loss = _flatten_1_2(loss).mean()
     
-    return loss / (num_masks + eps)
+    return loss
 
 
 @dataclasses.dataclass(frozen=True)
@@ -519,7 +535,7 @@ class Pi0(_model.BaseModel):
             )
             
             loss = jnp.sum(ce * gt_mask) / jnp.sum(gt_mask)
-            total_loss += loss
+            total_loss += 0.1 * loss
             
         if self.pred_segmentation:
             img_tokens = prefix_tokens[:, :(orig_prefix_len-self.max_token_len)]
@@ -628,6 +644,7 @@ class Pi0(_model.BaseModel):
         
         def language_step(carry):
             curr_language, curr_kv_cache, curr_idx, is_eos = carry
+                
             curr_language_mask = curr_language != 0
             
             curr_language_ar_mask = language_ar_mask[:curr_idx+1]

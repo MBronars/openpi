@@ -88,7 +88,7 @@ class HiveformerSubgoalInputs(transforms.DataTransformFn):
             }
         }
         
-        if "observation/wrist_seg" in data:
+        if "observation/wrist_seg" in data.keys():
             base_seg = _parse_image(data["observation/front_seg"]).squeeze(-1) 
             wrist_seg = _parse_image(data["observation/wrist_seg"]).squeeze(-1)    
             
@@ -97,11 +97,12 @@ class HiveformerSubgoalInputs(transforms.DataTransformFn):
                 "left_wrist_0_seg": wrist_seg,
                 "right_wrist_0_seg": np.zeros((orig_h, orig_w), dtype=np.uint8),
             }
-            inputs["segmentation_mask"] = {
+            inputs["segmentation_masks"] = {
                 "base_0_seg": np.True_,
                 "left_wrist_0_seg": np.True_,
                 "right_wrist_0_seg": np.False_,
-            },   
+            }   
+        
         
 
         
