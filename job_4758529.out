@@ -1,0 +1,517 @@
+[<class 'rlbench.tasks.put_books_on_bookshelf.PutBooksOnBookshelf'>]
+/data/user_data/mbronars/packages/PyRep/pyrep/objects/object.py:687: UserWarning: Object (62, 'DefaultLightC') has ObjectType.LIGHT, which is not supported
+  warnings.warn(
+/data/user_data/mbronars/packages/PyRep/pyrep/objects/object.py:687: UserWarning: Object (63, 'DefaultLightD') has ObjectType.LIGHT, which is not supported
+  warnings.warn(
+/data/user_data/mbronars/packages/PyRep/pyrep/objects/object.py:687: UserWarning: Object (64, 'DefaultLightA') has ObjectType.LIGHT, which is not supported
+  warnings.warn(
+/data/user_data/mbronars/packages/PyRep/pyrep/objects/object.py:687: UserWarning: Object (65, 'DefaultLightB') has ObjectType.LIGHT, which is not supported
+  warnings.warn(
+/data/user_data/mbronars/packages/PyRep/pyrep/objects/object.py:687: UserWarning: Object (62, 'DefaultLightC') has ObjectType.LIGHT, which is not supported
+  warnings.warn(
+/data/user_data/mbronars/packages/PyRep/pyrep/objects/object.py:687: UserWarning: Object (63, 'DefaultLightD') has ObjectType.LIGHT, which is not supported
+  warnings.warn(
+/data/user_data/mbronars/packages/PyRep/pyrep/objects/object.py:687: UserWarning: Object (64, 'DefaultLightA') has ObjectType.LIGHT, which is not supported
+  warnings.warn(
+/data/user_data/mbronars/packages/PyRep/pyrep/objects/object.py:687: UserWarning: Object (65, 'DefaultLightB') has ObjectType.LIGHT, which is not supported
+  warnings.warn(
+/data/user_data/mbronars/packages/PyRep/pyrep/objects/object.py:687: UserWarning: Object (62, 'DefaultLightC') has ObjectType.LIGHT, which is not supported
+  warnings.warn(
+/data/user_data/mbronars/packages/PyRep/pyrep/objects/object.py:687: UserWarning: Object (63, 'DefaultLightD') has ObjectType.LIGHT, which is not supported
+  warnings.warn(
+/data/user_data/mbronars/packages/PyRep/pyrep/objects/object.py:687: UserWarning: Object (64, 'DefaultLightA') has ObjectType.LIGHT, which is not supported
+  warnings.warn(
+/data/user_data/mbronars/packages/PyRep/pyrep/objects/object.py:687: UserWarning: Object (65, 'DefaultLightB') has ObjectType.LIGHT, which is not supported
+  warnings.warn(
+I0505 17:56:00.391966 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 17:56:51.818882 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 18:06:17.890205 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 18:06:29.879144 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 18:11:42.514358 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 18:13:16.489225 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 18:13:57.496890 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 8
+I0505 18:17:15.039441 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 8
+I0505 18:20:16.262700 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 18:21:46.076721 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 7
+I0505 18:26:25.317693 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Could not get a path for waypoint 16. Attempts left: 9
+I0505 18:28:14.499399 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 18:31:48.846605 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 8
+I0505 18:32:21.034270 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 18:32:56.104568 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 18:34:24.441734 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 8
+I0505 18:37:26.659495 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 18:38:01.639822 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 7
+I0505 18:42:14.365810 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 18:55:48.985624 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 18:56:44.601550 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 19:00:19.202904 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 8
+I0505 19:01:49.672677 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 19:04:01.629756 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 19:09:33.878042 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 19:13:05.683698 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 8
+I0505 19:15:13.289937 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 19:20:59.667796 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 19:25:58.650892 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 8
+I0505 19:27:24.427322 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 19:29:24.044543 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 7
+I0505 19:30:03.320962 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 8
+I0505 19:32:45.539988 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 7
+I0505 19:38:43.596364 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 19:38:56.113886 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 19:41:59.722832 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 8
+I0505 19:44:00.761159 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 8
+I0505 19:50:33.119621 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 19:52:54.627811 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 8
+I0505 19:53:16.843488 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Could not get a path for waypoint 16. Attempts left: 9
+I0505 19:55:19.683736 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 7
+I0505 20:02:59.125489 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Could not get a path for waypoint 10. Attempts left: 9
+I0505 20:08:54.557869 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 8
+I0505 20:09:22.116359 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Could not get a path for waypoint 1. Attempts left: 7
+/data/group_data/katefgroup/datasets/hiveformer_clean/put_books_on_bookshelf/variation0
+episode per task 34
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 0
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 1
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 2
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 3
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 4
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 5
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 6
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 7
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 8
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 9
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 10
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 11
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 12
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 13
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 14
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 15
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 16
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 17
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 18
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 19
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 20
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 21
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 22
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 23
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 24
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 25
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 26
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 27
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 28
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 29
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 30
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 31
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 32
+starting demo
+demo collected
+saving demo
+Process 0 // Task: put_books_on_bookshelf // Variation: 0 // Demo: 33
+starting demo
+demo collected
+saving demo
+Process 0 finished
+I0505 20:12:51.370935 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 6
+I0505 20:16:25.745126 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 5
+I0505 20:21:38.520082 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 20:24:38.399137 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 20:24:55.882182 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 8
+I0505 20:29:36.061094 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 7
+I0505 20:33:38.780791 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 20:41:25.714463 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 20:47:04.802614 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 20:50:37.357876 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 8
+I0505 20:57:54.570523 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 20:59:09.981173 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 21:12:09.283617 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 21:17:48.340040 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 8
+I0505 21:20:55.114294 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 21:30:43.075968 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 21:34:06.875570 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 21:44:16.979752 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 21:48:22.136321 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 21:54:21.374201 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+/data/group_data/katefgroup/datasets/hiveformer_clean/put_books_on_bookshelf/variation1
+episode per task 34
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 0
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 1
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 2
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 3
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 4
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 5
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 6
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 7
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 8
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 9
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 10
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 11
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 12
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 13
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 14
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 15
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 16
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 17
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 18
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 19
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 20
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 21
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 22
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 23
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 24
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 25
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 26
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 27
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 28
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 29
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 30
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 31
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 32
+starting demo
+demo collected
+saving demo
+Process 2 // Task: put_books_on_bookshelf // Variation: 1 // Demo: 33
+starting demo
+demo collected
+saving demo
+Process 2 finished
+I0505 22:11:11.619232 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 22:15:20.042972 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 8
+I0505 22:31:20.998565 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 22:41:43.459722 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+I0505 22:49:22.783257 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Could not get a path for waypoint 10. Attempts left: 9
+I0505 22:54:23.787789 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 8
+I0505 23:19:52.847725 23041038222464 task_environment.py:168] Bad demo. Error in task put_books_on_bookshelf. Demo was completed, but was not successful. Attempts left: 9
+/data/group_data/katefgroup/datasets/hiveformer_clean/put_books_on_bookshelf/variation2
+episode per task 34
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 0
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 1
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 2
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 3
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 4
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 5
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 6
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 7
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 8
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 9
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 10
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 11
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 12
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 13
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 14
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 15
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 16
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 17
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 18
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 19
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 20
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 21
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 22
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 23
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 24
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 25
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 26
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 27
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 28
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 29
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 30
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 31
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 32
+starting demo
+demo collected
+saving demo
+Process 1 // Task: put_books_on_bookshelf // Variation: 2 // Demo: 33
+starting demo
+demo collected
+saving demo
+Process 1 finished
+Data collection done!
+
+
+

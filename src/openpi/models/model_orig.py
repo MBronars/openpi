@@ -86,19 +86,9 @@ class Observation(Generic[ArrayT]):
     images: dict[str, at.Float[ArrayT, "*b h w c"]]
     # Image masks, with same keys as images.
     image_masks: dict[str, at.Bool[ArrayT, "*b"]]
-    
     # Low-dimensional robot state.
     state: at.Float[ArrayT, "*b s"]
 
-    # foreground/background segmentation masks
-    segmentations: dict[str, at.Bool[ArrayT, "*b h w"]] | None = None
-    # segmentation masks, with same keys as segmentations.
-    segmentation_masks: dict[str, at.Bool[ArrayT, "*b"]] | None = None
-    # Tokenized subtask.
-    tokenized_subtask: at.Int[ArrayT, "*b l"] | None = None
-    # Tokenized subtask mask.
-    tokenized_subtask_mask: at.Bool[ArrayT, "*b l"] | None = None
-    
     # Tokenized prompt.
     tokenized_prompt: at.Int[ArrayT, "*b l"] | None = None
     # Tokenized prompt mask.
@@ -125,12 +115,8 @@ class Observation(Generic[ArrayT]):
             images=data["image"],
             image_masks=data["image_mask"],
             state=data["state"],
-            segmentations=data.get("segmentation"),
-            segmentation_masks=data.get("segmentation_masks"),
             tokenized_prompt=data.get("tokenized_prompt"),
             tokenized_prompt_mask=data.get("tokenized_prompt_mask"),
-            tokenized_subtask=data.get("tokenized_subtask"),
-            tokenized_subtask_mask=data.get("tokenized_subtask_mask"),
             token_ar_mask=data.get("token_ar_mask"),
             token_loss_mask=data.get("token_loss_mask"),
         )
@@ -146,8 +132,6 @@ class Observation(Generic[ArrayT]):
 # Defines the format of the actions. This field is included as "actions" inside the dictionary
 # produced by the data transforms.
 Actions = at.Float[ArrayT, "*b ah ad"]
-# Subtasks = at.Int[ArrayT, "*b l"] | None
-# Segmentations = at.Bool[ArrayT, "*b h w"] | None
 
 
 def preprocess_observation(
@@ -155,7 +139,6 @@ def preprocess_observation(
     observation: Observation,
     *,
     train: bool = False,
-    segmentation: bool = False,
     image_keys: Sequence[str] = IMAGE_KEYS,
     image_resolution: tuple[int, int] = IMAGE_RESOLUTION,
 ) -> Observation:
@@ -169,84 +152,36 @@ def preprocess_observation(
     batch_shape = observation.state.shape[:-1]
 
     out_images = {}
-    out_segs = {}
-    
     for key in image_keys:
         image = observation.images[key]
-        
-        # Check if we have a corresponding segmentation for this image
-        if segmentation:
-            seg_key = key.replace("rgb", "seg")
-            seg = observation.segmentations[seg_key]
-        else:
-            seg = None
-            
-        # Resize if needed
         if image.shape[1:3] != image_resolution:
             logger.info(f"Resizing image {key} from {image.shape[1:3]} to {image_resolution}")
             image = image_tools.resize_with_pad(image, *image_resolution)
-            if seg is not None:
-                logger.info(f"Resizing not implemented for segmentation maps yet")
 
         if train:
-            # Convert image from [-1, 1] to [0, 1] for augmax
+            # Convert from [-1, 1] to [0, 1] for augmax.
             image = image / 2.0 + 0.5
             
-            # Define spatial transformations (to be applied to both image and segmentation)
-            spatial_transforms = []
+            transforms = []
             if "wrist" not in key:
                 height, width = image.shape[1:3]
-                spatial_transforms += [
+                transforms += [
                     augmax.RandomCrop(int(width * 0.95), int(height * 0.95)),
                     augmax.Resize(width, height),
                     augmax.Rotate((-5, 5)),
                 ]
-            
-            # Define color transformations (only for image, not segmentation)
-            color_transforms = [
+            transforms += [
                 augmax.ColorJitter(brightness=0.3, contrast=0.4, saturation=0.5),
             ]
-            
-            # Create RNG states - one per batch element
             sub_rngs = jax.random.split(rng, image.shape[0])
-            
-            # Apply spatial transformations to both image and segmentation
-            if len(spatial_transforms) > 0:
-                spatial_transform_chain = augmax.Chain(*spatial_transforms)
-                image = jax.vmap(spatial_transform_chain)(sub_rngs, image)
-                
-                # Apply the same spatial transformations to segmentation if it exists
-                if seg is not None:
-                    # Segmentation might be in a different format than the image, 
-                    # but we apply the same spatial transforms with the same RNG
-                    seg = jax.vmap(spatial_transform_chain)(sub_rngs, seg)
-            
-            # Apply color transformations only to the image
-            if len(color_transforms) > 0:
-                color_transform_chain = augmax.Chain(*color_transforms)
-                image = jax.vmap(color_transform_chain)(sub_rngs, image)
+            image = jax.vmap(augmax.Chain(*transforms))(sub_rngs, image)
 
-            # Convert image back to [-1, 1]
+            # Back to [-1, 1].
             image = image * 2.0 - 1.0
 
         out_images[key] = image
-        if seg is not None:
-            out_segs[seg_key] = seg
 
-    # Handle segmentation masks
-    if segmentation:
-        out_seg_masks = {}
-        for seg_key in out_segs:
-            if seg_key not in observation.segmentation_masks:
-                # do not mask by default
-                out_seg_masks[seg_key] = jnp.ones(batch_shape, dtype=jnp.bool)
-            else:
-                out_seg_masks[seg_key] = jnp.asarray(observation.segmentation_masks[seg_key])
-    else:
-        seg_out = None
-        out_seg_masks = None
-        
-    # Handle image masks
+    # obtain mask
     out_masks = {}
     for key in out_images:
         if key not in observation.image_masks:
@@ -258,13 +193,9 @@ def preprocess_observation(
     return Observation(
         images=out_images,
         image_masks=out_masks,
-        segmentations=out_segs,
-        segmentation_masks=out_seg_masks,
         state=observation.state,
         tokenized_prompt=observation.tokenized_prompt,
         tokenized_prompt_mask=observation.tokenized_prompt_mask,
-        tokenized_subtask=observation.tokenized_subtask,
-        tokenized_subtask_mask=observation.tokenized_subtask_mask,
         token_ar_mask=observation.token_ar_mask,
         token_loss_mask=observation.token_loss_mask,
     )

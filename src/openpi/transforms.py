@@ -2,6 +2,7 @@ from collections.abc import Callable, Mapping, Sequence
 import dataclasses
 import re
 from typing import Protocol, TypeAlias, TypeVar, runtime_checkable
+from PIL import Image
 
 import flax.traverse_util as traverse_util
 import jax
@@ -182,6 +183,20 @@ class ResizeImages(DataTransformFn):
     def __call__(self, data: DataDict) -> DataDict:
         data["image"] = {k: image_tools.resize_with_pad(v, self.height, self.width) for k, v in data["image"].items()}
         return data
+    
+@dataclasses.dataclass(frozen=True)
+class ResizeSegmentations(DataTransformFn):
+    height: int
+    width: int
+
+    def __call__(self, data: DataDict) -> DataDict:
+        if "segmentation" not in data:
+            return data
+        # transpose from c, h, w to h, w, c
+        data["segmentation"] = {k: image_tools.resize_with_pad(v, self.height, self.width, method=Image.NEAREST).squeeze(0) for k, v in data["segmentation"].items()}
+        # make all of the segmentations boolean
+        data["segmentation"] = {k: (v > 0).astype(np.bool) for k, v in data["segmentation"].items()}
+        return data
 
 
 @dataclasses.dataclass(frozen=True)
@@ -251,6 +266,20 @@ class TokenizePrompt(DataTransformFn):
         tokens, token_masks = self.tokenizer.tokenize(prompt)
         return {**data, "tokenized_prompt": tokens, "tokenized_prompt_mask": token_masks}
 
+@dataclasses.dataclass(frozen=True)
+class TokenizeSubtask(DataTransformFn):
+    tokenizer: _tokenizer.PaligemmaTokenizer
+    subtask_tokenizer: _tokenizer.PaligemmaSubtaskTokenizer
+
+    def __call__(self, data: DataDict) -> DataDict:
+        if (subtask := data.pop("subtask", None)) is None:
+            raise ValueError("Subtask is required")
+
+        if not isinstance(subtask, str):
+            subtask = subtask.item()
+
+        tokens, token_masks = self.tokenizer.tokenize(subtask)
+        return {**data, "tokenized_subtask": tokens, "tokenized_subtask_mask": token_masks}
 
 @dataclasses.dataclass(frozen=True)
 class TokenizeFASTInputs(DataTransformFn):

@@ -15,7 +15,7 @@
 cd /data/user_data/mbronars/packages/openpi
 
 echo "Launching pi0 server for peract2 evaluation"
-uv run scripts/serve_policy.py policy:checkpoint --policy.config=pi0_peract2 --policy.dir=checkpoints/pi0_peract2/peract2_test/29999 &
+uv run scripts/serve_policy.py policy:checkpoint --policy.config=pi0_peract2_joint_traj --policy.dir=checkpoints/pi0_peract2_joint_traj/peract2_joint_traj/35000 &
 
 
 source /home/mbronars/.bashrc

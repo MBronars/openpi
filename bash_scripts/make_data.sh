@@ -5,7 +5,7 @@
 #SBATCH --error=/home/mbronars/workspace/slurm_runs/3DVLA/rlbench_error_%j.log
 #SBATCH --time=2-00:00:00             # Time limit (hh:mm:ss)
 #SBATCH --nodes=1                  # Number of nodes
-#SBATCH --ntasks=1                 # Number of tasks (processes)
+#SBATCH --ntasks=4                 # Number of tasks (processes)
 #SBATCH --gpus-per-task=1          # Number of tasks (processes)
 #SBATCH --constraint="A6000|6000Ada|L40|L40S"
 #SBATCH --cpus-per-task=6          # Number of cores per task

@@ -18,4 +18,4 @@ nvidia-smi topo -m
 
 cd /data/user_data/mbronars/packages/openpi
 
-bash /data/user_data/mbronars/packages/openpi/bash_scripts/train.sh
+bash /data/user_data/mbronars/packages/openpi/bash_scripts/train_mbronars.sh

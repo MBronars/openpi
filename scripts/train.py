@@ -69,15 +69,69 @@ def init_wandb(config: _config.TrainConfig, *, resuming: bool, log_code: bool = 
         wandb.run.log_code(epath.Path(__file__).parent.parent)
 
 
-def _load_weights_and_validate(loader: _weight_loaders.WeightLoader, params_shape: at.Params) -> at.Params:
-    """Loads and validates the weights. Returns a loaded subset of the weights."""
-    loaded_params = loader.load(params_shape)
-    at.check_pytree_equality(expected=params_shape, got=loaded_params, check_shapes=True, check_dtypes=True)
+# def _load_weights_and_validate(loader: _weight_loaders.WeightLoader, params_shape: at.Params) -> at.Params:
+#     """Loads and validates the weights. Returns a loaded subset of the weights."""
+#     loaded_params = loader.load(params_shape)
+#     at.check_pytree_equality(expected=params_shape, got=loaded_params, check_shapes=True, check_dtypes=True)
 
-    # Remove jax.ShapeDtypeStruct from the loaded params. This makes sure that only the loaded params are returned.
-    return traverse_util.unflatten_dict(
-        {k: v for k, v in traverse_util.flatten_dict(loaded_params).items() if not isinstance(v, jax.ShapeDtypeStruct)}
-    )
+#     # Remove jax.ShapeDtypeStruct from the loaded params. This makes sure that only the loaded params are returned.
+#     return traverse_util.unflatten_dict(
+#         {k: v for k, v in traverse_util.flatten_dict(loaded_params).items() if not isinstance(v, jax.ShapeDtypeStruct)}
+#     )
+
+def _load_weights_and_validate(
+    loader: _weight_loaders.WeightLoader,
+    params_shape: at.Params,
+) -> at.Params:
+    """
+    Loads a checkpoint and returns only the parameters that exist in `params_shape`.
+    For every loaded key we verify shape & dtype.  Any model parameters that do not
+    appear in the checkpoint are left random, and we log their names.
+    """
+    # 1. Load whatever the loader can find for this model.
+    loaded = loader.load(params_shape)
+
+    flat_expected = traverse_util.flatten_dict(params_shape)
+    flat_loaded   = traverse_util.flatten_dict(loaded)
+
+    expected_keys = set(flat_expected.keys())
+    loaded_keys   = set(flat_loaded.keys())
+
+    # 2. Detect problems up-front.
+    extra   = loaded_keys   - expected_keys          # shouldn’t happen
+    missing = expected_keys - loaded_keys            # new params (e.g. seg_tokens)
+
+    if extra:
+        raise ValueError(
+            f"Checkpoint contains {len(extra)} unexpected parameter(s): "
+            + ", ".join("/".join(k) for k in sorted(extra))
+        )
+
+    # 3. Check shape & dtype for the keys that *do* match.
+    for k in loaded_keys:
+        exp = flat_expected[k]
+        got = flat_loaded[k]
+        if exp.shape != got.shape or exp.dtype != got.dtype:
+            raise ValueError(
+                f"Shape/dtype mismatch at {'/'.join(k)} – "
+                f"expected {exp.shape}/{exp.dtype}, got {got.shape}/{got.dtype}"
+            )
+
+    # 4. Let the user know what will stay random.
+    # if missing:
+    #     logging.info(
+    #         "Initialising %d parameter(s) from scratch (not in checkpoint): %s",
+    #         len(missing),
+    #         ", ".join("/".join(k) for k in sorted(missing)),
+    #     )
+
+    # 5. Strip out any placeholder ShapeDtypeStructs (kept for shape inference).
+    flat_loaded_clean = {
+        k: v for k, v in flat_loaded.items()
+        if not isinstance(v, jax.ShapeDtypeStruct)
+    }
+
+    return traverse_util.unflatten_dict(flat_loaded_clean)
 
 
 @at.typecheck
@@ -214,7 +268,13 @@ def main(config: _config.TrainConfig):
         overwrite=config.overwrite,
         resume=config.resume,
     )
-    init_wandb(config, resuming=resuming, enabled=config.wandb_enabled)
+    
+    is_main_process = jax.process_index() == 0
+    
+    if is_main_process:
+        init_wandb(config, resuming=resuming, enabled=config.wandb_enabled)
+    else:
+        wandb.init(mode="disabled")
 
     data_loader = _data_loader.create_data_loader(
         config,
@@ -258,7 +318,9 @@ def main(config: _config.TrainConfig):
             reduced_info = jax.device_get(jax.tree.map(jnp.mean, stacked_infos))
             info_str = ", ".join(f"{k}={v:.4f}" for k, v in reduced_info.items())
             pbar.write(f"Step {step}: {info_str}")
-            wandb.log(reduced_info, step=step)
+            
+            if is_main_process:
+                wandb.log(reduced_info, step=step)
             infos = []
         batch = next(data_iter)
 
@@ -267,6 +329,9 @@ def main(config: _config.TrainConfig):
 
     logging.info("Waiting for checkpoint manager to finish")
     checkpoint_manager.wait_until_finished()
+    
+    if is_main_process:
+        wandb.finish()
 
 
 if __name__ == "__main__":
