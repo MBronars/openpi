@@ -33,7 +33,9 @@ tasks = [
 def main():
     # Create a trained policy.
     config = config_func.get_config("pi0_hiveformer")
-    checkpoint_path = "/data/user_data/mbronars/packages/openpi/checkpoints/pi0_hiveformer/shoes_maybe_fixed/5000"
+    # checkpoint_path = "/data/user_data/mbronars/packages/openpi/checkpoints/pi0_hiveformer/shoes_maybe_fixed/13000"
+    checkpoint_path = "/data/user_data/mbronars/packages/openpi/checkpoints/pi0_hiveformer/shoes_seg_only_fixed/1000"
+    # checkpoint_path = "/data/user_data/mbronars/packages/openpi/checkpoints/pi0_hiveformer_test/shoe_test/1000"
     # get checkpoint number from path
     checkpoint_num = int(checkpoint_path.split("/")[-1])
     checkpoint_dir = download.maybe_download(checkpoint_path)
@@ -50,7 +52,7 @@ def main():
     for task in tasks:
         task_folder = f'{RAW_DATASET_PATH}/{task}/variation0/episodes'
         episodes = sorted(os.listdir(task_folder))
-        episodes = episodes[80:]
+        episodes = episodes[80:81]
         task_annotation_name = task + "_var0_episode_0"
         task_annotations = subgoal_annotations[task_annotation_name]
         annotated_keyframes = sorted(task_annotations.keys(), key=lambda x: int(x))
@@ -101,8 +103,8 @@ def main():
                     seg = segmentation > 0
                     pred_front_seg = seg[0]
                     pred_wrist_seg = seg[1]
-                    cv2.imwrite(f"{ep}_{i}_pred_wrist_seg_.png", pred_wrist_seg.astype(np.uint8) * 255)
-                    cv2.imwrite(f"{ep}_{i}_pred_front_seg.png", pred_front_seg.astype(np.uint8) * 255)
+                    cv2.imwrite(f"{ep}_{i}_pred_full_wrist_seg_.png", pred_wrist_seg.astype(np.uint8) * 255)
+                    cv2.imwrite(f"{ep}_{i}_pred_full_front_seg.png", pred_front_seg.astype(np.uint8) * 255)
                     cv2.imwrite(f"{ep}_{i}_gt_front_seg.png", front_seg.astype(np.uint8) * 255)
                     cv2.imwrite(f"{ep}_{i}_gt_wrist_seg.png", wrist_seg.astype(np.uint8) * 255)
                                         

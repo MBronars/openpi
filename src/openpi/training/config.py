@@ -931,7 +931,9 @@ _CONFIGS = [
         # Here you define the dataset you are training on. In this example we use the Libero
         # dataset. For your own dataset, you can change the repo_id to point to your dataset.
         # Also modify the DataConfig to use the new config you made for your dataset above.
-        
+        wandb_enabled=True,
+        batch_size=2,
+        fsdp_devices=1,
         data=LeRobotHiveformerSubgoalDataConfig(
             repo_id="hiveformer_keypose", #"physical-intelligence/libero",
             local_path="/data/group_data/katefgroup/VLA/lerobot_datasets/shoes_subgoal",
@@ -958,6 +960,8 @@ _CONFIGS = [
         TrainConfig(
         # Change the name to reflect your model and dataset.
         name="pi0_hiveformer",
+        
+        log_interval=10,
         # Here you define the model config -- In this example we use pi0 as the model
         # architecture and perform *full* finetuning. in the examples below we show how to modify
         # this to perform *low-memory* (LORA) finetuning and use pi0-FAST as an alternative architecture.
@@ -981,9 +985,6 @@ _CONFIGS = [
         weight_loader=weight_loaders.CheckpointWeightLoader("s3://openpi-assets/checkpoints/pi0_base/params"),
         # Below you can define other hyperparameters like the learning rate, number of training steps, etc.
         # Check the base TrainConfig class for a full list of available hyperparameters.
-        freeze_filter=pi0.Pi0Config(
-            pred_segmentation_only=True,
-        ).get_freeze_filter(),
         
         num_train_steps=30_000,
     ),
