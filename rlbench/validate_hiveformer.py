@@ -33,7 +33,7 @@ tasks = [
 def main():
     # Create a trained policy.
     config = config_func.get_config("pi0_hiveformer")
-    checkpoint_path = "/data/user_data/mbronars/packages/openpi/checkpoints/pi0_hiveformer/shoes/15000"
+    checkpoint_path = "/data/user_data/mbronars/packages/openpi/checkpoints/pi0_hiveformer/shoes_maybe_fixed/5000"
     # get checkpoint number from path
     checkpoint_num = int(checkpoint_path.split("/")[-1])
     checkpoint_dir = download.maybe_download(checkpoint_path)
@@ -94,8 +94,18 @@ def main():
                     
                     policy_output = policy.infer(example)
                     action_chunk = policy_output["actions"]
-                    subgoals = policy_output["subgoals"]
+                    language_pred = policy_output["language_tokens"]
+                    segmentation = policy_output["segmentation"]
                     
+                    
+                    seg = segmentation > 0
+                    pred_front_seg = seg[0]
+                    pred_wrist_seg = seg[1]
+                    cv2.imwrite(f"{ep}_{i}_pred_wrist_seg_.png", pred_wrist_seg.astype(np.uint8) * 255)
+                    cv2.imwrite(f"{ep}_{i}_pred_front_seg.png", pred_front_seg.astype(np.uint8) * 255)
+                    cv2.imwrite(f"{ep}_{i}_gt_front_seg.png", front_seg.astype(np.uint8) * 255)
+                    cv2.imwrite(f"{ep}_{i}_gt_wrist_seg.png", wrist_seg.astype(np.uint8) * 255)
+                                        
                     pred_actions = action_chunk.reshape(-1, 8)
                     action = action.reshape(-1, 8)
                     losses = compute_metrics(pred_actions, action)
