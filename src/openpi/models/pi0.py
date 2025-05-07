@@ -633,6 +633,9 @@ class Pi0(_model.BaseModel):
 
         # first fill KV cache with a forward pass of the prefix
         prefix_tokens, prefix_mask, prefix_ar_mask = self.embed_prefix(observation)
+        
+        original_prefix_len = prefix_tokens.shape[1]
+        
         prefix_attn_mask = make_attn_mask(prefix_mask, prefix_ar_mask)
         positions = jnp.cumsum(prefix_mask, axis=1) - 1
         prefix_out, kv_cache = self.PaliGemma.llm([prefix_tokens, None], mask=prefix_attn_mask, positions=positions)
@@ -643,52 +646,55 @@ class Pi0(_model.BaseModel):
         is_eos = jnp.zeros((batch_size,), dtype=jnp.bool)  # Current token is always valid
         
         def language_step(carry):
-            curr_language, curr_kv_cache, curr_idx, is_eos = carry
-                
-            curr_language_mask = curr_language != 0
+            curr_language, curr_idx, is_eos = carry
             
-            curr_language_ar_mask = language_ar_mask[:curr_idx+1]
-            curr_language_mask = curr_language_mask[:, :curr_idx+1]
+            eos_id = 2
+            pad_id = 0
+            first_eos_idx = jnp.argmax(curr_language == eos_id, axis=1)  
+            has_eos = jnp.any(curr_language == eos_id, axis=1)               
+
+            positions = jnp.arange(curr_language.shape[1])[None, :]
+            after_eos = (positions > first_eos_idx[:, None]) & has_eos[:, None]
             
+            curr_language = jnp.where(after_eos, pad_id, curr_language)
+            curr_language_mask = (curr_language != 0) 
+            step_mask = jnp.arange(self.max_token_len) <= curr_idx  
+            curr_language_mask = curr_language_mask & step_mask
             
+            curr_language_ar_mask = language_ar_mask
             
             full_mask = jnp.concatenate([prefix_mask, curr_language_mask], axis=-1)
-            full_ar_mask = jnp.concatenate([prefix_ar_mask, curr_language_ar_mask], axis=-1)
+            full_ar_mask = jnp.concatenate([prefix_ar_mask, language_ar_mask], axis=-1)
             full_attn_mask = make_attn_mask(full_mask, full_ar_mask)
-            
-            curr_attn_mask = full_attn_mask[:, curr_idx:curr_idx+1, :]
-            
+            language_attn_mask = full_attn_mask[:, -self.max_token_len:, :]
+                        
             # Add language token positional info
             language_positions = jnp.cumsum(full_mask, axis=1) - 1
+            language_positions = language_positions[:, -self.max_token_len:]
             
-            language_positions = language_positions[:, curr_idx:curr_idx+1]
-
-            # Forward pass through the language model to predict the next token
-            curr_token = curr_language[:, curr_idx:curr_idx+1]  # Take the most recently generated token
-            
-            curr_lang_embed = self.PaliGemma.llm(curr_token, method="embed")
-            
-            (subtask_out, _), next_kv_cache = self.PaliGemma.llm(
+            curr_lang_embed = self.PaliGemma.llm(curr_language, method="embed")
+            (subtask_out, _), _ = self.PaliGemma.llm(
                 [curr_lang_embed, None], 
-                mask=curr_attn_mask, 
+                mask=language_attn_mask, 
                 positions=language_positions, 
-                kv_cache=curr_kv_cache
+                kv_cache=kv_cache
             )
             
             # Get logits for next token prediction
             subtask_logits = self.PaliGemma.llm(subtask_out, method="decode")
-            next_token = jnp.argmax(subtask_logits, axis=-1) 
-            
+            next_tokens = jnp.argmax(subtask_logits, axis=-1) 
+            curr_token = next_tokens[:, curr_idx]
+        
             eos_token = 2
-            is_next_eos = (next_token == eos_token)  
+            is_next_eos = (curr_token == eos_token)  
             is_eos = jnp.logical_or(is_eos, jnp.any(is_next_eos, axis=-1))
 
-            curr_language = curr_language.at[:, curr_idx:curr_idx+1].set(next_token)
+            curr_language = curr_language.at[:, curr_idx].set(curr_token)
             
-            return (curr_language, next_kv_cache, curr_idx + 1, is_eos)
+            return (curr_language, curr_idx + 1, is_eos)
 
         def language_cond(carry):
-            curr_language, _, curr_idx, is_eos = carry
+            curr_language, curr_idx, is_eos = carry
             
             # Continue until we've generated the desired length or hit an end token
             is_not_done_length = curr_idx < self.max_token_len
@@ -699,13 +705,67 @@ class Pi0(_model.BaseModel):
             return is_not_done
         
 
+        sep_tokens = jnp.full((batch_size, 1), 108, dtype=jnp.int32)  # Assuming 108 is the ID for the separator token
+        pad_tokens = jnp.full((batch_size, self.max_token_len-1), 0, dtype=jnp.int32)  # Assuming 108 is the ID for the separator token
+        language_tokens = jnp.concatenate([sep_tokens, pad_tokens], axis=1)
+        
+        pred_subtask, _, final_eos = jax.lax.while_loop(language_cond, language_step, (language_tokens, jnp.array(0), is_eos))
+        
+        pred_subtask_mask = (pred_subtask != 0) 
+        full_mask = jnp.concatenate([prefix_mask, pred_subtask_mask], axis=-1)
+        full_ar_mask = jnp.concatenate([prefix_ar_mask, language_ar_mask], axis=-1)
+        full_attn_mask = make_attn_mask(full_mask, full_ar_mask)
+        language_attn_mask = full_attn_mask[:, -self.max_token_len:, :]
+                    
+        # Add language token positional info
+        language_positions = jnp.cumsum(full_mask, axis=1) - 1
+        language_positions = language_positions[:, -self.max_token_len:]
+        
+        curr_lang_embed = self.PaliGemma.llm(pred_subtask, method="embed")
+        
+        _, final_kv_cache = self.PaliGemma.llm(
+                [curr_lang_embed, None], 
+                mask=language_attn_mask, 
+                positions=language_positions, 
+                kv_cache=kv_cache
+        )
+        
 
-        sep_tokens = jnp.full((batch_size, self.max_token_len), 108, dtype=jnp.int32)  # Assuming 108 is the ID for the separator token
-        # project sep tokens to 
-        pred_subtask, final_kv_cache, _, final_eos = jax.lax.while_loop(language_cond, language_step, (sep_tokens, kv_cache, jnp.array(0), is_eos))
-
-        if jnp.any(final_eos):
-            pred_subtask[final_eos, curr] = 0  # Set the remaining tokens to 0 if EOS is reached
+        segmentation_ar_mask = [1] + [0] + [0]
+        segmentation_ar_mask = jnp.array(segmentation_ar_mask, dtype=jnp.bool_)
+        
+        segmentation_mask = []
+        for name, val in observation.image_masks.items():
+            curr_segmentation_mask = einops.repeat(
+                val,
+                "b -> b s",
+                s=1,
+            )
+            segmentation_mask.append(curr_segmentation_mask)
+        segmentation_mask = jnp.concatenate(segmentation_mask, axis=1)
+        
+        updated_lang_mask = pred_subtask != 0
+        
+        prefix_mask = jnp.concatenate([prefix_mask, updated_lang_mask, segmentation_mask], axis=1)
+        full_segmentation_ar_mask = jnp.concatenate([prefix_ar_mask, language_ar_mask, segmentation_ar_mask], axis=0)
+        
+        segmentation_positions = jnp.cumsum(prefix_mask, axis=1) - 1
+        
+        full_segmentation_attn_mask = make_attn_mask(prefix_mask, full_segmentation_ar_mask)
+        full_segmentation_attn_mask = full_segmentation_attn_mask[:, -3:, :]
+        
+        seg_token = jnp.repeat(self.seg_tokens, repeats=batch_shape, axis=0)
+        
+        
+        (subtask_out, _), final_kv_cache = self.PaliGemma.llm(
+                [seg_tokens, None], 
+                mask=full_segmentation_attn_mask, 
+                positions=segmentation_positions, 
+                kv_cache=final_kv_cache
+        )
+        
+        img_tokens = prefix_tokens[:, :(orig_prefix_len-self.max_token_len)]
+        full_masks = self.generate_segmentation_masks(subtask_out, img_tokens)
 
 
         def step(carry):
@@ -731,7 +791,7 @@ class Pi0(_model.BaseModel):
             positions = jnp.sum(prefix_mask, axis=-1)[:, None] + jnp.cumsum(suffix_mask, axis=-1) - 1
 
             (prefix_out, suffix_out), _ = self.PaliGemma.llm(
-                [None, suffix_tokens], mask=full_attn_mask, positions=positions, kv_cache=kv_cache
+                [None, suffix_tokens], mask=full_attn_mask, positions=positions, kv_cache=final_kv_cache
             )
             assert prefix_out is None
             v_t = self.action_out_proj(suffix_out[:, -self.action_horizon :])
@@ -745,4 +805,140 @@ class Pi0(_model.BaseModel):
 
 
         x_0, _ = jax.lax.while_loop(cond, step, (noise, 1.0))
-        return x_0
+        return x_0, (pred_subtask, full_masks)
+    
+    
+    
+    
+
+        # def language_step_o3_bad(carry):
+        #     PAD_TOKEN = 0
+        #     EOS_TOKEN = 2
+        #     curr_language, curr_kv_cache, curr_idx, is_eos = carry
+        #     B, L_max = curr_language.shape                    # all static
+
+        #     # ------------------------------------------------------------------
+        #     # 1.  STATIC autoregressive mask for *this* step
+        #     # ------------------------------------------------------------------
+        #     # build [L_max] bool mask: True for columns ≤ curr_idx
+        #     step_mask = jnp.arange(L_max) <= curr_idx         # traced scalar is fine
+        #     # broadcast and combine with your pre‑computed masks
+        #     curr_language_ar_mask = language_ar_mask & step_mask
+        #     curr_language_mask    = (curr_language != PAD_TOKEN) & step_mask
+        #     # ------------------------------------------------------------------
+
+        #     full_mask    = jnp.concatenate([prefix_mask,    curr_language_mask], axis=-1)
+        #     full_ar_mask = jnp.concatenate([prefix_ar_mask, curr_language_ar_mask], axis=-1)
+        #     full_attn_mask = make_attn_mask(full_mask, full_ar_mask)
+            
+            
+        #     B, _, S = full_attn_mask.shape        # all compile‑time constants
+
+        #     # make sure the index is an int32 scalar (what XLA expects)
+        #     start_idx = jnp.asarray(curr_idx, jnp.int32)
+
+        #     # query attends over *all* keys, but query length is 1 → static shape
+        #     # curr_attn_mask = full_attn_mask[:, curr_idx:curr_idx + 1, :]   # 1 row, L_max+prefix cols
+        #     curr_attn_mask = jax.lax.dynamic_slice(
+        #         full_attn_mask,                   # the big tensor  [B, T, S]
+        #         start_indices=(0, start_idx, 0),  # (batch=0 → take all, time=start_idx, src=0)
+        #         slice_sizes=(B, 1, S)             # ← static sizes: 1 row on axis‑1
+        #     )   
+            
+        #     curr_language_token = jax.lax.dynamic_slice(
+        #         curr_language,                    # the big tensor  [B, T, S]
+        #         start_indices=(0, start_idx),     # (batch=0 → take all, time=start_idx)
+        #         slice_sizes=(B, 1)                # ← static sizes: 1 row on axis‑1
+        #     )
+
+        #     # ------------------------------------------------------------------
+        #     # 2.  Current token (pad if this sample already ended)
+        #     # ------------------------------------------------------------------
+        #     curr_token = jnp.where(
+        #         is_eos[:, None],                       # [B,1] bool
+        #         jnp.full((B, 1), PAD_TOKEN, curr_language.dtype),
+        #         curr_language_token,
+        #     )
+
+        #     curr_lang_embed = self.PaliGemma.llm(curr_token, method="embed")
+
+        #     # ------------------------------------------------------------------
+        #     # 3.  Positions: just the scalar index repeated across the batch
+        #     # ------------------------------------------------------------------
+        #     language_positions = jnp.broadcast_to(curr_idx, (B, 1))
+            
+        #     breakpoint()
+
+        #     (subtask_out, _), next_kv_cache = self.PaliGemma.llm(
+        #         [curr_lang_embed, None],
+        #         mask=curr_attn_mask,
+        #         positions=language_positions,
+        #         kv_cache=curr_kv_cache,
+        #     )
+
+        #     subtask_logits = self.PaliGemma.llm(subtask_out, method="decode")
+        #     next_token = jnp.argmax(subtask_logits, axis=-1)
+
+        #     is_next_eos = next_token == EOS_TOKEN
+        #     is_eos = jnp.logical_or(is_eos, jnp.any(is_next_eos, axis=-1))
+
+        #     # write the newly generated token back into the sequence buffer
+        #     curr_language = curr_language.at[:, curr_idx:curr_idx + 1].set(next_token)
+
+        #     return (curr_language, next_kv_cache, curr_idx + 1, is_eos)
+        
+        
+        
+            #     def language_step_bad(carry):
+            # curr_language, curr_kv_cache, curr_idx, is_eos = carry
+            
+            # eos_id = 2
+            # pad_id = 0
+            # first_eos_idx = jnp.argmax(curr_language == eos_id, axis=1)  
+            # has_eos = jnp.any(curr_language == eos_id, axis=1)               
+
+            # positions = jnp.arange(curr_language.shape[1])[None, :]
+            # after_eos = (positions > first_eos_idx[:, None]) & has_eos[:, None]
+            
+            # curr_language = jnp.where(after_eos, pad_id, curr_language)
+                
+            # curr_language_mask = curr_language != 0
+            
+            # curr_language_ar_mask = language_ar_mask
+
+            
+            # full_mask = jnp.concatenate([prefix_mask, curr_language_mask], axis=-1)
+            # full_ar_mask = jnp.concatenate([prefix_ar_mask, curr_language_ar_mask], axis=-1)
+            # full_attn_mask = make_attn_mask(full_mask, full_ar_mask)
+            
+            # curr_attn_mask = full_attn_mask[:, curr_idx:curr_idx+1, :]
+            
+            # # Add language token positional info
+            # language_positions = jnp.cumsum(full_mask, axis=1) - 1
+            
+            # language_positions = language_positions[:, curr_idx:curr_idx+1]
+
+            # # Forward pass through the language model to predict the next token
+            # curr_token = curr_language[:, curr_idx:curr_idx+1]  # Take the most recently generated token
+            
+            # curr_lang_embed = self.PaliGemma.llm(curr_token, method="embed")
+            
+            # (subtask_out, _), next_kv_cache = self.PaliGemma.llm(
+            #     [curr_lang_embed, None], 
+            #     mask=curr_attn_mask, 
+            #     positions=language_positions, 
+            #     kv_cache=kv_cache
+            # )
+            
+            # # Get logits for next token prediction
+            # subtask_logits = self.PaliGemma.llm(subtask_out, method="decode")
+            # next_token = jnp.argmax(subtask_logits, axis=-1) 
+            
+            # eos_token = 2
+            # is_next_eos = (next_token == eos_token)  
+            # is_eos = jnp.logical_or(is_eos, jnp.any(is_next_eos, axis=-1))
+
+            # curr_language = curr_language.at[:, curr_idx:curr_idx+1].set(next_token)
+            
+            # return (curr_language, next_kv_cache, curr_idx + 1, is_eos)
+                

@@ -702,7 +702,7 @@ class TrainConfig:
     resume: bool = False
 
     # If true, will enable wandb logging.
-    wandb_enabled: bool = False
+    wandb_enabled: bool = True
 
     # Used to pass metadata to the policy server.
     policy_metadata: dict[str, Any] | None = None
