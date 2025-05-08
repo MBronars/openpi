@@ -34,7 +34,7 @@ def main():
     # Create a trained policy.
     config = config_func.get_config("pi0_hiveformer")
     # checkpoint_path = "/data/user_data/mbronars/packages/openpi/checkpoints/pi0_hiveformer/shoes_maybe_fixed/13000"
-    checkpoint_path = "/data/user_data/mbronars/packages/openpi/checkpoints/pi0_hiveformer/shoes_seg_only_fixed/1000"
+    checkpoint_path = "/data/user_data/mbronars/packages/openpi/checkpoints/pi0_hiveformer_subgoal/shoes_subgoal/5000"
     # checkpoint_path = "/data/user_data/mbronars/packages/openpi/checkpoints/pi0_hiveformer_test/shoe_test/1000"
     # get checkpoint number from path
     checkpoint_num = int(checkpoint_path.split("/")[-1])
@@ -86,11 +86,11 @@ def main():
                     action = np.concatenate([
                         demo[next_k].gripper_pose,
                         [demo[next_k].gripper_open]])
-                    example ={
+                    example= {
                             "observation/front_image": front_image,
                             "observation/wrist_image": wrist_image,
                             "observation/state": state,
-                            "prompt": all_instructions[task]['0'][0],
+                            "prompt": all_instructions[task]['0'][0]
                         }
                         
                     
@@ -99,18 +99,27 @@ def main():
                     language_pred = policy_output["language_tokens"]
                     segmentation = policy_output["segmentation"]
                     
-                    
-                    seg = segmentation > 0
-                    pred_front_seg = seg[0]
-                    pred_wrist_seg = seg[1]
-                    cv2.imwrite(f"{ep}_{i}_pred_full_wrist_seg_.png", pred_wrist_seg.astype(np.uint8) * 255)
-                    cv2.imwrite(f"{ep}_{i}_pred_full_front_seg.png", pred_front_seg.astype(np.uint8) * 255)
-                    cv2.imwrite(f"{ep}_{i}_gt_front_seg.png", front_seg.astype(np.uint8) * 255)
-                    cv2.imwrite(f"{ep}_{i}_gt_wrist_seg.png", wrist_seg.astype(np.uint8) * 255)
-                                        
                     pred_actions = action_chunk.reshape(-1, 8)
                     action = action.reshape(-1, 8)
-                    losses = compute_metrics(pred_actions, action)
+                    segmentation = segmentation > 0
+                    wrist_seg = cv2.resize(wrist_seg.astype(np.uint8), (224, 224), interpolation=cv2.INTER_NEAREST)
+                    front_seg = cv2.resize(front_seg.astype(np.uint8), (224, 224), interpolation=cv2.INTER_NEAREST)
+                    gt_segmentation = np.array([wrist_seg, front_seg])
+                    gt_segmentation = gt_segmentation > 0
+                    losses = compute_metrics(pred_actions, action, language_pred, tokenized_subtask, segmentation, gt_segmentation)
+                    
+                    
+                    # seg = segmentation > 0
+                    # pred_front_seg = seg[0]
+                    # pred_wrist_seg = seg[1]
+                    # cv2.imwrite(f"{ep}_{i}_pred_full_wrist_seg_.png", pred_wrist_seg.astype(np.uint8) * 255)
+                    # cv2.imwrite(f"{ep}_{i}_pred_full_front_seg.png", pred_front_seg.astype(np.uint8) * 255)
+                    # cv2.imwrite(f"{ep}_{i}_gt_front_seg.png", front_seg.astype(np.uint8) * 255)
+                    # cv2.imwrite(f"{ep}_{i}_gt_wrist_seg.png", wrist_seg.astype(np.uint8) * 255)
+                                        
+                    # pred_actions = action_chunk.reshape(-1, 8)
+                    # action = action.reshape(-1, 8)
+                    # losses = compute_metrics(pred_actions, action)
                     
                     
                     for n, l in losses.items():
@@ -133,7 +142,7 @@ def main():
         json.dump(values, f)
                 
 
-def compute_metrics(pred, gt):
+def compute_metrics(pred, gt, language_pred, language_gt, seg_pred, seg_gt):
     # pred/gt are (B, L, 7), mask (B, L)
     pos_l2 = np.sqrt(np.sum((pred[..., :3] - gt[..., :3]) ** 2, axis=-1))
     
@@ -157,6 +166,26 @@ def compute_metrics(pred, gt):
         tr + 'gripper': np.mean(openess.flatten().astype(float))
     }
     
+    if language_pred is not None:
+        # Language metrics
+        language_acc = np.mean((language_pred == language_gt).astype(float))
+        ret_1.update({
+            'language_top1_acc': language_acc
+        })
+    
+    if seg_pred is not None:
+        front_pred = seg_pred[0]
+        wrist_pred = seg_pred[1]
+        front_gt = seg_gt[0]
+        wrist_gt = seg_gt[1]
+        front_iou = compute_iou(front_pred, front_gt)
+        wrist_iou = compute_iou(wrist_pred, wrist_gt)
+        ret_1.update({
+            'front_iou': front_iou,
+            'wrist_iou': wrist_iou
+        })
+        
+    
     # ret_2 = {
     #     tr + 'pos_l2': np.mean(pos_l2, axis=-1),
     #     tr + 'pos_acc_001': np.mean((pos_l2 < 0.01).astype(float), axis=-1),
@@ -165,6 +194,35 @@ def compute_metrics(pred, gt):
     # }
     
     return ret_1#, ret_2
+
+def compute_iou(pred_mask, gt_mask):
+    """
+    Calculate the Intersection over Union (IoU) between predicted mask and ground truth mask.
+    
+    Args:
+        pred_mask (numpy.ndarray): Binary predicted mask (0 or 1)
+        gt_mask (numpy.ndarray): Binary ground truth mask (0 or 1)
+        
+    Returns:
+        float: IoU score ranging from 0 to 1
+    """
+    # Ensure the masks are binary
+    pred_mask = pred_mask.astype(bool)
+    gt_mask = gt_mask.astype(bool)
+    
+    # Calculate intersection and union
+    intersection = np.logical_and(pred_mask, gt_mask).sum()
+    union = np.logical_or(pred_mask, gt_mask).sum()
+    
+    # Handle edge case when both masks are empty
+    if union == 0:
+        return 1.0
+    
+    # Calculate IoU
+    iou = intersection / union
+    
+    return iou
+
     
                     
 

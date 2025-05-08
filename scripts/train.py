@@ -45,6 +45,11 @@ def init_logging():
     logger.setLevel(logging.INFO)
     logger.handlers[0].setFormatter(formatter)
 
+    # if True:
+    #     file_handler = logging.FileHandler("/data/user_data/mbronars/packages/openpi/text_output.txt")
+    #     file_handler.setFormatter(formatter)
+    #     logger.addHandler(file_handler)
+
 
 def init_wandb(config: _config.TrainConfig, *, resuming: bool, log_code: bool = False, enabled: bool = True):
     if not enabled:
@@ -318,6 +323,7 @@ def main(config: _config.TrainConfig):
             reduced_info = jax.device_get(jax.tree.map(jnp.mean, stacked_infos))
             info_str = ", ".join(f"{k}={v:.4f}" for k, v in reduced_info.items())
             pbar.write(f"Step {step}: {info_str}")
+            logging.info(f"Step {step}: {info_str}")
             
             if is_main_process:
                 wandb.log(reduced_info, step=step)

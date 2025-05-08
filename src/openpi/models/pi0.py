@@ -139,9 +139,8 @@ class Pi0Config(_model.BaseModelConfig):
     max_token_len: int = 48
     
     # specify subgoals
-    pred_segmentation: bool = True
+    pred_segmentation: bool = False
     pred_subtask: bool = False
-    pred_segmentation_only: bool = False
 
     @property
     @override
@@ -212,10 +211,6 @@ class Pi0Config(_model.BaseModelConfig):
                 action_expert_params_filter,
             )
             has_lora = True
-        # elif self.pred_segmentation_only:
-        #     filters.append(
-        #         action_expert_params_filter,
-        #     )
 
         if has_lora:
             # If any lora is used, exclude all lora params.
@@ -259,7 +254,9 @@ class Pi0(_model.BaseModel):
         self.pred_segmentation = config.pred_segmentation
         self.pred_subtask = config.pred_subtask
         self.max_token_len = config.max_token_len
-        if config.pred_segmentation:
+        self.paligemma_hidden_dim = paligemma_config.width
+        self.action_hidden_dim = action_expert_config.width
+        if self.pred_segmentation:
             self.seg_tokens = nnx.Param(jax.random.normal(rngs.params(), (1, 3, paligemma_config.width)))
             self.mask_decoder = MaskDecoder(
                 transformer_dim=paligemma_config.width,
@@ -330,29 +327,33 @@ class Pi0(_model.BaseModel):
             input_mask.append(obs.tokenized_subtask_mask)
             # full attention between image and language inputs
             ar_mask += [True] * tokenized_subtask.shape[1]
+            
         
         # embed segmentation tokens
-        for i, name in enumerate(obs.segmentations):
-            
-            seg_token = jnp.repeat(self.seg_tokens[:, i : i+1, :], repeats=batch_shape, axis=0)
+        if obs.segmentation_masks is not None and self.pred_segmentation:
+            for i, name in enumerate(obs.segmentations):
+                
+                seg_token = jnp.repeat(self.seg_tokens[:, i : i+1, :], repeats=batch_shape, axis=0)
 
-            tokens.append(seg_token)
-            input_mask.append(
-                einops.repeat(
-                    obs.segmentation_masks[name],
-                    "b -> b s",
-                    s=1,
+                tokens.append(seg_token)
+                input_mask.append(
+                    einops.repeat(
+                        obs.segmentation_masks[name],
+                        "b -> b s",
+                        s=1,
+                    )
                 )
-            )
-            # image tokens attend to each other, but not to the language
-            if i == 0:
-                ar_mask += [True]
-            else:
-                ar_mask += [False]
-            
-        tokens = jnp.concatenate(tokens, axis=1)
-        input_mask = jnp.concatenate(input_mask, axis=1)
-        ar_mask = jnp.array(ar_mask)
+                # image tokens attend to each other, but not to the language
+                if i == 0:
+                    ar_mask += [True]
+                else:
+                    ar_mask += [False]
+                    
+        if self.pred_subtask or self.pred_segmentation:
+            tokens = jnp.concatenate(tokens, axis=1)
+            input_mask = jnp.concatenate(input_mask, axis=1)
+            ar_mask = jnp.array(ar_mask)
+ 
         return tokens, input_mask, ar_mask
             
         
@@ -457,9 +458,11 @@ class Pi0(_model.BaseModel):
         subgoal_tokens, subgoal_mask, subgoal_ar_mask = self.embed_subgoals(observation)
         
         orig_prefix_len = prefix_tokens.shape[1]
-        prefix_tokens = jnp.concatenate([prefix_tokens, subgoal_tokens], axis=1)
-        prefix_mask = jnp.concatenate([prefix_mask, subgoal_mask], axis=1)
-        prefix_ar_mask = jnp.concatenate([prefix_ar_mask, subgoal_ar_mask], axis=0)
+        
+        if self.pred_subtask or self.pred_segmentation:
+            prefix_tokens = jnp.concatenate([prefix_tokens, subgoal_tokens], axis=1)
+            prefix_mask = jnp.concatenate([prefix_mask, subgoal_mask], axis=1)
+            prefix_ar_mask = jnp.concatenate([prefix_ar_mask, subgoal_ar_mask], axis=0)
         
         suffix_tokens, suffix_mask, suffix_ar_mask = self.embed_suffix(observation, x_t, time)
         input_mask = jnp.concatenate([prefix_mask, suffix_mask], axis=1)
@@ -476,11 +479,9 @@ class Pi0(_model.BaseModel):
         v_t = self.action_out_proj(suffix_out[:, -self.action_horizon :])
         
         total_loss = jnp.mean(jnp.square(v_t - u_t), axis=-1)
-        
-        # total_loss = 0
-        
+                
         if self.pred_subtask:
-            subtask_out = subgoal_out[:, :-3]
+            subtask_out = subgoal_out[:, :self.max_token_len, :]
             subtask_logits = self.PaliGemma.llm(subtask_out, method="decode")
             
             subtask_logits = subtask_logits[:, :-1]
@@ -495,7 +496,7 @@ class Pi0(_model.BaseModel):
             )
             
             loss = jnp.sum(ce * gt_mask) / jnp.sum(gt_mask)
-            #total_loss += 0.1 * loss
+            total_loss += 0.1 * loss
             
         if self.pred_segmentation:
             img_tokens = [] 
@@ -530,12 +531,6 @@ class Pi0(_model.BaseModel):
             gt_segs = jnp.concatenate(gt_segs, axis=0)
             img_tokens = jnp.concatenate(img_tokens, axis=0)
             seg_out = jnp.concatenate(seg_out, axis=0)
-            # segmentation_masks = jnp.concatenate(segmentation_masks, axis=0)
-            
-            # # dont compute predictions and losses for masked out images
-            # seg_out = jnp.compress(segmentation_masks, seg_out, axis=0) 
-            # img_tokens = jnp.compress(segmentation_masks, img_tokens, axis=0)
-            # gt_segs = jnp.compress(segmentation_masks, gt_segs, axis=0)
             
             pred_seg = self.generate_segmentation_masks(seg_out, img_tokens)
                                 
@@ -726,6 +721,9 @@ class Pi0(_model.BaseModel):
             seg_out = jnp.concatenate(seg_out, axis=0)
 
             full_masks = self.generate_segmentation_masks(seg_out, img_tokens)
+        else:
+            full_masks = jnp.empty((batch_size, 3, 224, 224), dtype=jnp.float32)
+            full_segmentation_ar_mask = jnp.empty((0,), dtype=jnp.bool_)
 
         def step(carry):
             x_t, time = carry
@@ -741,11 +739,17 @@ class Pi0(_model.BaseModel):
             # `combined_mask` is shape (b, suffix_len, prefix_len + suffix_len) indicating how the suffix tokens (which
             # generate the queries) can attend to the full prefix + suffix sequence (which generates the keys and values)
             full_attn_mask = jnp.concatenate([prefix_attn_mask, suffix_attn_mask], axis=-1)
+            
+            full_shape = prefix_tokens.shape[1] + suffix_tokens.shape[1]
+            if self.pred_subtask:
+                full_shape += self.max_token_len
+            if self.pred_segmentation:
+                full_shape += 3
+                                
             assert full_attn_mask.shape == (
                 batch_size,
                 suffix_tokens.shape[1],
-                # prefix_tokens.shape[1] + self.max_token_len + 3 + suffix_tokens.shape[1],
-                prefix_tokens.shape[1] + 3 + suffix_tokens.shape[1],
+                full_shape
             )
             # `positions` is shape (b, suffix_len) indicating the positions of the suffix tokens
             positions = jnp.sum(prefix_mask, axis=-1)[:, None] + jnp.cumsum(suffix_mask, axis=-1) - 1

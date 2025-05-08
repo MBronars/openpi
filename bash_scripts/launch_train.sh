@@ -7,7 +7,7 @@
 #SBATCH --nodes=1                  # Number of nodes
 #SBATCH --ntasks=4                 # Number of tasks (processes)
 #SBATCH --gpus-per-task=1          # Number of tasks (processes)
-#SBATCH --constraint="A6000|6000Ada|A100_80GB|L40|L40S"
+#SBATCH --constraint="6000Ada|A100_80GB|L40|L40S"
 #SBATCH --cpus-per-task=6          # Number of cores per task
 #SBATCH --mem=150G                  # Memory limit per node
 #SBATCH --partition=general # Partition name
@@ -21,3 +21,6 @@ export NCCL_P2P_DISABLE=1
 cd /data/user_data/mbronars/packages/openpi
 
 bash /data/user_data/mbronars/packages/openpi/bash_scripts/train_mbronars.sh
+
+
+#--constraint="A6000|6000Ada|A100_80GB|L40|L40S"
