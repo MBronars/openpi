@@ -1,0 +1,1 @@
+XLA_PYTHON_CLIENT_MEM_FRACTION=0.9 uv run scripts/train.py pi0_hiveformer_subgoal --exp-name=final_shoes_subgoal --overwrite
