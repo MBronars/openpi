@@ -24,7 +24,7 @@ from openpi.models.segmentation import PromptEncoder, MaskDecoder, TwoWayTransfo
 logger = logging.getLogger("openpi")
 
 
-def make_attn_mask(input_mask, mask_ar):
+def make_attn_mask(input_mask, mask_ar, apply_prefix=None):
     """Adapted from big_vision.
 
     Tokens can attend to valid inputs tokens which have a cumulative mask_ar
@@ -44,10 +44,17 @@ def make_attn_mask(input_mask, mask_ar):
       input_mask: bool[B, N] true if its part of the input, false if padding.
       mask_ar: bool[?B, N] mask that's true where previous tokens cannot depend on
         it and false where it shares the same attention mask as the previous token.
+      apply_prefix: bool[?B, N] mask that is true only for the prefix tokens.
     """
     mask_ar = jnp.broadcast_to(mask_ar, input_mask.shape)
     cumsum = jnp.cumsum(mask_ar, axis=1)
-    attn_mask = cumsum[:, None, :] <= cumsum[:, :, None]
+
+    if apply_prefix is not None:
+        apply_prefix = jnp.broadcast_to(apply_prefix, input_mask.shape)
+        attn_mask = (cumsum[:, None, :] == cumsum[:, :, None]) | apply_prefix[:, None, :].astype(bool)
+    else:
+        attn_mask = cumsum[:, None, :] <= cumsum[:, :, None]
+
     valid_mask = input_mask[:, None, :] * input_mask[:, :, None]
     return jnp.logical_and(attn_mask, valid_mask)
 
@@ -141,6 +148,7 @@ class Pi0Config(_model.BaseModelConfig):
     # specify subgoals
     pred_segmentation: bool = False
     pred_subtask: bool = False
+    only_aux: bool = False
 
     @property
     @override
@@ -253,6 +261,7 @@ class Pi0(_model.BaseModel):
         self.action_out_proj = nnx.Linear(action_expert_config.width, config.action_dim, rngs=rngs)
         self.pred_segmentation = config.pred_segmentation
         self.pred_subtask = config.pred_subtask
+        self.only_aux = config.only_aux
         self.max_token_len = config.max_token_len
         self.paligemma_hidden_dim = paligemma_config.width
         self.action_hidden_dim = action_expert_config.width
@@ -458,16 +467,28 @@ class Pi0(_model.BaseModel):
         subgoal_tokens, subgoal_mask, subgoal_ar_mask = self.embed_subgoals(observation)
         
         orig_prefix_len = prefix_tokens.shape[1]
+        apply_prefix = jnp.ones_like(prefix_ar_mask, dtype=bool)
         
         if self.pred_subtask or self.pred_segmentation:
             prefix_tokens = jnp.concatenate([prefix_tokens, subgoal_tokens], axis=1)
             prefix_mask = jnp.concatenate([prefix_mask, subgoal_mask], axis=1)
             prefix_ar_mask = jnp.concatenate([prefix_ar_mask, subgoal_ar_mask], axis=0)
+            apply_prefix = jnp.concatenate([
+                apply_prefix,
+                jnp.zeros_like(subgoal_ar_mask, dtype=bool)
+            ], axis=1)
         
         suffix_tokens, suffix_mask, suffix_ar_mask = self.embed_suffix(observation, x_t, time)
         input_mask = jnp.concatenate([prefix_mask, suffix_mask], axis=1)
         ar_mask = jnp.concatenate([prefix_ar_mask, suffix_ar_mask], axis=0)
-        attn_mask = make_attn_mask(input_mask, ar_mask)
+        apply_prefix = jnp.concatenate([
+            apply_prefix,
+            jnp.zeros_like(suffix_ar_mask, dtype=bool)
+        ], axis=1)
+        attn_mask = make_attn_mask(
+            input_mask, ar_mask,
+            apply_prefix=apply_prefix if self.only_aux else None
+        )
         positions = jnp.cumsum(input_mask, axis=1) - 1
         (prefix_out, suffix_out), _ = self.PaliGemma.llm(
             [prefix_tokens, suffix_tokens], mask=attn_mask, positions=positions
